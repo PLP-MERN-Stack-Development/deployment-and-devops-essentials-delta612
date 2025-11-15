@@ -1,0 +1,30 @@
+# Alert Rules for Prometheus
+# Save as monitoring/alert-rules.yml
+
+groups:
+  - name: application_alerts
+    interval: 30s
+    rules:
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+        for: 5m
+        annotations:
+          summary: "High memory usage detected"
+
+      - alert: HighCPUUsage
+        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 5m
+        annotations:
+          summary: "High CPU usage detected"
+
+      - alert: BackendDown
+        expr: up{job="backend-api"} == 0
+        for: 1m
+        annotations:
+          summary: "Backend service is down"
+
+      - alert: HighErrorRate
+        expr: (rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        annotations:
+          summary: "High error rate detected"
